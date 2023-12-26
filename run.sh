@@ -9,6 +9,14 @@ elif [[ "$(uname)" != "Linux" ]]; then
   exit 1
 fi
 
+if command -v python3.8 &> /dev/null; then
+    echo "Python 3.8 found. Using Python 3.8..."
+    python_cmd=python3.8
+  elif command -v python3 &> /dev/null; then
+    echo "Python 3.8 not found. Using Python 3..."
+    python_cmd=python3
+fi
+
 if [ -d ".venv" ]; then
   echo "Activate venv..."
   source .venv/bin/activate
@@ -30,18 +38,18 @@ else
     fi
   fi
 
-  python3 -m venv .venv
+  ${python_cmd} -m venv .venv
   source .venv/bin/activate
 
   # Check if required packages are installed and install them if not
   if [ -f "${requirements_file}" ]; then
-    installed_packages=$(python3 -m pip freeze)
+    installed_packages=$(${python_cmd} -m pip freeze)
     while IFS= read -r package; do
       [[ "${package}" =~ ^#.* ]] && continue
       package_name=$(echo "${package}" | sed 's/[<>=!].*//')
       if ! echo "${installed_packages}" | grep -q "${package_name}"; then
         echo "${package_name} not found. Attempting to install..."
-        python3 -m pip install --upgrade "${package}"
+        ${python_cmd} -m pip install --upgrade "${package}"
       fi
     done < "${requirements_file}"
   else
@@ -58,4 +66,4 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Run the main script
-python3 infer-web.py --pycmd python3
+${python_cmd} infer-web.py --pycmd ${python_cmd}
